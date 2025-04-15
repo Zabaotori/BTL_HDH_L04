@@ -23,3 +23,6 @@ int liballoc(struct pcb_t *, uint32_t, uint32_t);
 int libfree(struct pcb_t *, uint32_t);
 int libread(struct pcb_t*, uint32_t, uint32_t, uint32_t*);
 int libwrite(struct pcb_t*, BYTE, uint32_t, uint32_t);
+
+
+int __free(struct pcb_t *caller, int vmaid, int rgid);

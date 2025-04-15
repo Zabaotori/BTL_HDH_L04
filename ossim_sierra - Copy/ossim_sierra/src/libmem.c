@@ -74,8 +74,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   /* TODO: commit the vmaid */
   // rgnode.vmaid
 
-  if (get_free_vmrg_area(caller, vmaid, size, &rgnode) == 0)
-  {
+  if (get_free_vmrg_area(caller, vmaid, size, &rgnode) == 0) {
     caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
     caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
  
@@ -125,8 +124,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
  *@size: allocated size
  *
  */
-int __free(struct pcb_t *caller, int vmaid, int rgid)
-{
+int __free(struct pcb_t *caller, int vmaid, int rgid) {
   //struct vm_rg_struct rgnode;
 
   // Dummy initialization for avoding compiler dummay warning

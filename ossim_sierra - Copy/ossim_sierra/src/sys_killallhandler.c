@@ -21,7 +21,7 @@
   * Returns:
   *    - 0 always (success)
   */
- int sys_killallhandler(struct pcb_t *caller, struct sc_regs *regs) {
+ int __sys_killallhandler(struct pcb_t *caller, struct sc_regs *regs) {
     printf("sys_killallhandler invoked!\n");
     printf("The first system call parameter is: %d\n", regs->a1);
     return 0;
