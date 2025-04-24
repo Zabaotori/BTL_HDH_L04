@@ -53,13 +53,23 @@
   */
  int pte_set_swap(uint32_t *pte, int swptyp, int swpoff)
  {
-   SETBIT(*pte, PAGING_PTE_PRESENT_MASK);
-   SETBIT(*pte, PAGING_PTE_SWAPPED_MASK);
+  CLRBIT(*pte, PAGING_PTE_PRESENT_MASK); 
+  SETBIT(*pte, PAGING_PTE_SWAPPED_MASK); 
  
-   SETVAL(*pte, swptyp, PAGING_PTE_SWPTYP_MASK, PAGING_PTE_SWPTYP_LOBIT);
-   SETVAL(*pte, swpoff, PAGING_PTE_SWPOFF_MASK, PAGING_PTE_SWPOFF_LOBIT);
+  SETVAL(*pte, swptyp, PAGING_PTE_SWPTYP_MASK, PAGING_PTE_SWPTYP_LOBIT);
+  
+  // Không chia swpoff, giữ nguyên giá trị
+  SETVAL(*pte, swpoff, PAGING_PTE_SWPOFF_MASK, PAGING_PTE_SWPOFF_LOBIT);
  
-   return 0;
+  // Kiểm tra swpoff
+  uint32_t actual_swpoff = (*pte & PAGING_PTE_SWPOFF_MASK) >> PAGING_PTE_SWPOFF_LOBIT;
+  if (actual_swpoff != swpoff)
+  {
+      CLRBIT(*pte, PAGING_PTE_SWPOFF_MASK);
+      *pte |= (swpoff << PAGING_PTE_SWPOFF_LOBIT) & PAGING_PTE_SWPOFF_MASK;
+  }
+  
+  return 0;
  }
  
  /*
@@ -69,12 +79,17 @@
   */
  int pte_set_fpn(uint32_t *pte, int fpn)
  {
-   SETBIT(*pte, PAGING_PTE_PRESENT_MASK);
-   CLRBIT(*pte, PAGING_PTE_SWAPPED_MASK);
- 
-   SETVAL(*pte, fpn, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT);
- 
-   return 0;
+  SETBIT(*pte, PAGING_PTE_PRESENT_MASK);
+  CLRBIT(*pte, PAGING_PTE_SWAPPED_MASK);
+  SETVAL(*pte, fpn, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT);
+  // Xác minh bit swapped
+  if (*pte & PAGING_PTE_SWAPPED_MASK)
+  {
+      
+      *pte &= ~PAGING_PTE_SWAPPED_MASK; // Xóa lại bit swapped
+  }
+  
+  return 0;
  }
  
  /*
@@ -365,28 +380,43 @@
  
  int print_pgtbl(struct pcb_t *caller, uint32_t start, uint32_t end)
  {
-   int pgn_start, pgn_end;
-   int pgit;
- 
-   if (end == -1)
-   {
-     pgn_start = 0;
-     struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, 0);
-     end = cur_vma->vm_end;
-   }
-   pgn_start = PAGING_PGN(start);
-   pgn_end = PAGING_PGN(end);
- 
-   printf("print_pgtbl: %d - %d", start, end);
-   if (caller == NULL) { printf("NULL caller\n"); return -1;}
-   printf("\n");
- 
-   for (pgit = pgn_start; pgit < pgn_end; pgit++)
-   {
-     printf("%08ld: %08x\n", pgit * sizeof(uint32_t), caller->mm->pgd[pgit]);
-   }
- 
-   return 0;
+  int pgn_start, pgn_end;
+  int pgit;
+
+  if (end == -1)
+  {
+    pgn_start = 0;
+    struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, 0);
+    end = cur_vma->vm_end;
+  }
+  pgn_start = PAGING_PGN(start);
+  pgn_end = PAGING_PGN(end);
+
+  printf("print_pgtbl: %d - %d", start, end);
+  if (caller == NULL) { printf("NULL caller\n"); return -1;}
+  printf("\n");
+
+  for (pgit = pgn_start; pgit < pgn_end; pgit++)
+  {
+    printf("%08x: %08x\n", pgit * sizeof(uint32_t), caller->mm->pgd[pgit]);
+  }
+  for (pgit = pgn_start; pgit < pgn_end; pgit++)
+  {
+    uint32_t pte = caller->mm->pgd[pgit];
+    if (pte & PAGING_PTE_SWAPPED_MASK)
+    {
+      int swpoff = PAGING_SWP(pte);
+      printf("Page Number: %d -> Swapped (swpoff=%d)\n", pgit, swpoff);
+    }
+    else
+    {
+      int fpn = PAGING_FPN(pte);
+      printf("Page Number: %d -> Frame Number: %d\n", pgit, fpn);
+    }
+  }
+
+  printf("================================================================\n");
+  return 0;
  }
  
  // #endif
