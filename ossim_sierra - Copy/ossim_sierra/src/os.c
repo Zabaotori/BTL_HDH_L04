@@ -51,6 +51,15 @@ static void * cpu_routine(void * args) {
 	int time_left = 0;
 	struct pcb_t * proc = NULL;
 	while (1) {
+		
+		if(proc == NULL){
+			proc = get_proc();
+			if (proc == NULL && done) {
+				/* No process to run, exit */
+				printf("\tCPU %d stopped\n", id);
+				break;
+			}
+		}
 		/* Check the status of current process */
 		if (proc == NULL) {
 			/* No process is running, the we load new process from
