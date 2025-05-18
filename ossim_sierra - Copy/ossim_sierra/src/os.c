@@ -52,6 +52,7 @@ static void * cpu_routine(void * args) {
 	struct pcb_t * proc = NULL;
 	while (1) {
 		
+		/* Check the status of current process */
 		if (proc == NULL) {
 			/* No process is running, the we load new process from
 		 	* ready queue */
@@ -60,9 +61,13 @@ static void * cpu_routine(void * args) {
 				printf("\tCPU %d stopped\n", id);
 				break;
 			} else if (proc == NULL) {
+			
 				next_slot(timer_id);
                 		continue;
+
 			}
+			
+                          
 		}else if (proc->pc == proc->code->size) {
 			/* The porcess has finish it job */
 			printf("\tCPU %d: Processed %2d has finished\n",
@@ -115,31 +120,6 @@ static void * ld_routine(void * args) {
 	int i = 0;
 	printf("ld_routine\n");
 	while (i < num_processes) {
-		int j = i + 1;
-		int min_idx = i;
-		if (j < num_processes ) {
-			// Nếu tìm thấy process có prio nhỏ hơn, cập nhật min_idx
-			if ((ld_processes.prio[j] < ld_processes.prio[min_idx]) && (ld_processes.start_time[j] == ld_processes.start_time[min_idx])) {
-				min_idx = j;
-			}
-		}
-		// Nếu min_idx khác i, hoán đổi process có prio nhỏ nhất lên đầu nhóm
-		if (min_idx != i) {
-			// Swap start_time
-			unsigned long tmp_time = ld_processes.start_time[i];
-			ld_processes.start_time[i] = ld_processes.start_time[min_idx];
-			ld_processes.start_time[min_idx] = tmp_time;
-
-			// Swap prio
-			unsigned long tmp_prio = ld_processes.prio[i];
-			ld_processes.prio[i] = ld_processes.prio[min_idx];
-			ld_processes.prio[min_idx] = tmp_prio;
-
-			// Swap path
-			char* tmp_path = ld_processes.path[i];
-			ld_processes.path[i] = ld_processes.path[min_idx];
-			ld_processes.path[min_idx] = tmp_path;
-		}
 		struct pcb_t * proc = load(ld_processes.path[i]);
 #ifdef MLQ_SCHED
 		proc->prio = ld_processes.prio[i];
@@ -299,6 +279,3 @@ int main(int argc, char * argv[]) {
 	return 0;
 
 }
-
-
-
