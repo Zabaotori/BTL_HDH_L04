@@ -119,7 +119,7 @@ static void * ld_routine(void * args) {
 		int min_idx = i;
 		if (j < num_processes ) {
 			// Nếu tìm thấy process có prio nhỏ hơn, cập nhật min_idx
-			if (ld_processes.prio[j] < ld_processes.prio[min_idx]) {
+			if ((ld_processes.prio[j] < ld_processes.prio[min_idx]) && (ld_processes.start_time[j] == ld_processes.start_time[min_idx])) {
 				min_idx = j;
 			}
 		}
