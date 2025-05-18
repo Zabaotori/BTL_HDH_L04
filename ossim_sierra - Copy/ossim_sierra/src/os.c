@@ -117,12 +117,11 @@ static void * ld_routine(void * args) {
 	while (i < num_processes) {
 		int j = i + 1;
 		int min_idx = i;
-		while (j < num_processes && ld_processes.start_time[j] == ld_processes.start_time[i]) {
+		if (j < num_processes ) {
 			// Nếu tìm thấy process có prio nhỏ hơn, cập nhật min_idx
 			if (ld_processes.prio[j] < ld_processes.prio[min_idx]) {
 				min_idx = j;
 			}
-			j++;
 		}
 		// Nếu min_idx khác i, hoán đổi process có prio nhỏ nhất lên đầu nhóm
 		if (min_idx != i) {
